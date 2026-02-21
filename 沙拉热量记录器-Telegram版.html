@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🥗 沙拉热量记录器 - Telegram版</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #4CAF50;
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header h1 .emoji {
+            font-size: 32px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: #555;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meal-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .meal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .meal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meal-emoji {
+            font-size: 20px;
+        }
+
+        .meal-total {
+            font-size: 16px;
+            font-weight: 500;
+            color: #4CAF50;
+        }
+
+        .food-list {
+            margin-bottom: 15px;
+        }
+
+        .food-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .food-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .food-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .food-calories {
+            font-weight: 600;
+            color: #ff6b6b;
+        }
+
+        .add-food-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .food-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .food-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .calories-input {
+            width: 100px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .quick-add {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .quick-btn {
+            padding: 10px;
+            background: #e3f2fd;
+            border: 2px solid #bbdefb;
+            border-radius: 10px;
+            color: #1976d2;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-btn:hover {
+            background: #bbdefb;
+            transform: translateY(-2px);
+        }
+
+        .history-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .history-item {
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-date {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .history-total {
+            font-weight: 600;
+            color: #4CAF50;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            margin-top: 30px;
+        }
+
+        .telegram-btn {
+            background: #0088cc;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .telegram-btn:hover {
+            background: #0077b5;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .add-food-form {
+                flex-direction: column;
+            }
+            
+            .calories-input {
+                width: 100%;
+            }
+            
+            .quick-add {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* 暗色模式适配 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                color: #e0e0e0;
+            }
+            
+            .header, .stats-card, .meal-section, .history-section {
+                background: rgba(30, 30, 46, 0.95);
+                color: #e0e0e0;
+            }
+            
+            .stat-item, .food-item, .history-item {
+                background: rgba(40, 40, 60, 0.8);
+            }
+            
+            .food-input, .calories-input {
+                background: rgba(40, 40, 60, 0.8);
+                border-color: #444;
+                color: #e0e0e0;
+            }
+            
+            .quick-btn {
+                background: rgba(40, 40, 60, 0.8);
+                border-color: #444;
+                color: #bbdefb;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部信息 -->
+        <div class="header fade-in">
+            <h1><span class="emoji">🥗</span> 沙拉热量记录器</h1>
+            <p>记录每日热量摄入，保持健康饮食</p>
+            
+            <div class="user-info" id="userInfo">
+                <!-- Telegram用户信息将在这里显示 -->
+            </div>
+        </div>
+
+        <!-- 今日统计 -->
+        <div class="stats-card fade-in">
+            <h2>📊 今日统计</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalCalories">0</div>
+                    <div class="stat-label">总热量</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="remainingCalories">2000</div>
+                    <div class="stat-label">剩余热量</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="mealsCount">0</div>
+                    <div class="stat-label">餐次数</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 早餐 -->
+        <div class="meal-section fade-in">
+            <div class="meal-header">
+                <div class="meal-title">
+                    <span class="meal-emoji">🌅</span> 早餐
+                </div>
+                <div class="meal-total" id="breakfastTotal">0 大卡</div>
+            </div>
+            <div class="food-list" id="breakfastList">
+                <!-- 早餐食物列表 -->
+            </div>
+            <div class="add-food-form">
+                <input type="text" class="food-input" id="breakfastFood" placeholder="食物名称 (如：牛奶)" maxlength="20">
+                <input type="number" class="calories-input" id="breakfastCalories" placeholder="热量" min="0" max="5000">
+                <button class="btn btn-primary" onclick="addFood('breakfast')">
+                    <span>➕</span> 添加
+                </button>
+            </div>
+            <div class="quick-add">
+                <button class="quick-btn" onclick="quickAdd('breakfast', '牛奶', 150)">牛奶 (150大卡)</button>
+                <button class="quick-btn" onclick="quickAdd('breakfast', '鸡蛋', 80)">鸡蛋 (80大卡)</button>
+                <button class="quick-btn" onclick="quickAdd('breakfast', '面包', 120)">面包 (120大卡)</button>
+                <button class="quick-btn" onclick="quickAdd('breakfast', '燕麦', 150)">燕麦 (150大卡)</button>
+            </div>
+        </div>
+
+        <!-- 午餐 -->
+        <div class="meal-section fade-in">
+            <div class="meal-header">
+                <div class="meal-title">
+                    <span class="meal-emoji">☀️</span> 午餐
+                </div>
+                <div class="meal-total" id="lunchTotal">0 大卡</div>
+            </div>
+            <div class="food-list" id="lunchList">
+                <!-- 午餐食物列表 -->
+            </div>
+            <div class="add-food-form">
+                <input type="text" class="food-input" id="lunchFood" placeholder="食物名称 (如：米饭)" maxlength="20">
+                <input type="number" class="calories-input" id="lunchCalories" placeholder="热量" min="0" max="5000">
+                <button class="btn btn-primary" onclick="addFood('lunch')">
+                    <span>➕</span> 添加
+                </button>
+            </div>
+            <div class="quick-add">
+                <button class="quick-btn" onclick="quickAdd('lunch', '米饭', 200)">米饭 (200大卡)</button>
+                <button class="quick-btn" onclick="quickAdd('lunch', '鸡肉', 180)">鸡肉 (180大卡)</button>
+                <button class="quick-btn" onclick="quickAdd('lunch', '蔬菜', 50)">蔬菜 (50大卡)</button>
+                <button class="quick-btn" onclick="quickAdd('lunch', '面条', 220)">面条 (220大卡)</button>
+            </div>
+        </div>
+
+        <!-- 晚餐 -->
+        <div class="meal-section fade-in">
+            <div class="meal-header">
+                <div class="meal-title">
+                    <span class="meal-emoji">🌙</span> 晚餐
+                </div>
+                <div class="meal-total" id="dinnerTotal">0 大卡</div>
+            </div>
+            <div class="food-list" id="dinnerList">
+                <!-- 晚餐食物列表 -->
+            </div>
+            <div class="add-food-form">
+                <input type="text" class="food-input" id="dinnerFood" placeholder="食物名称 (如：沙拉)" maxlength="20">
+                <input type="number" class="calories-input" id="dinnerCalories" placeholder="热量" min="0" max="5000">
+                <button class="btn btn-primary" onclick="addFood('dinner')">
+                    <span>➕</span> 添加
+                </button>
+            </div>
+            <div class="quick-add">
+                <button class="quick-btn" onclick="quickAdd('dinner', '沙拉', 150)">沙拉 (150大卡)</button>
+                <button class="quick-btn" onclick="quickAdd('dinner', '鱼肉', 200)">鱼肉 (200大卡)</button>
+                <button class="quick-btn" onclick="quickAdd('dinner', '豆腐', 100)">豆腐 (100大卡)</button>
+                <button class="quick-btn" onclick="quickAdd('dinner', '汤', 80)">汤 (80大卡)</button>
+            </div>
+        </div>
+
+        <!-- 历史记录 -->
+        <div class="history-section fade-in">
+            <div class="meal-header">
+                <div class="meal-title">
+                    <span class="meal-emoji">📅</span> 历史记录
+                </div>
+                <button class="btn btn-secondary" onclick="clearAllData()">
+                    <span>🗑️</span> 清空数据
+                </button>
+            </div>
+            <div class="history-list" id="historyList">
+                <!-- 历史记录将在这里显示 -->
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="stats-card fade-in" style="text-align: center;">
+            <button class="btn btn-primary" onclick="saveDay()" style="margin: 5px;">
+                <span>💾</span> 保存今日记录
+            </button>
+            <button class="btn btn-secondary" onclick="exportData()" style="margin: 5px;">
+                <span>📤</span> 导出数据
+            </button>
+            <button class="btn btn-danger" onclick="resetDay()" style="margin: 5px;">
+                <span>🔄</span> 重置今日
+            </button>
+        </div>
+
+        <!-- Telegram功能 -->
+        <div class="header fade-in">
+            <h3>🤖 Telegram 功能</h3>
+            <p>以下功能需要Telegram Web App支持</p>
+            <div style="margin-top: 15px;">
+                <button class="btn btn-primary" onclick="shareToTelegram()" style="margin: 5px;">
+                    <span>📤</span> 分享到Telegram
+                </button>
+                <button class="btn btn-secondary" onclick="requestContact()" style="margin: 5px;">
+                    <span>👤</span> 获取联系人
+                </button>
+                <button class="btn btn-secondary" onclick="showMainButton()" style="margin: 5px;">
+                    <span>🔘</span> 显示主按钮
+                </button>
+            </div>
+        </div>
+
+        <!-- 使用说明 -->
+        <div class="meal-section fade-in">
+            <h3>📖 使用说明</h3>
+            <div style="margin-top: 15px; line-height: 1.8;">
+                <p><strong>1. 添加食物：</strong>输入食物名称和热量，点击添加按钮</p>
+                <p><strong>2. 快速添加：</strong>点击预设按钮快速添加常见食物</p>
+                <p><strong>3. 保存记录：</strong>点击"保存今日记录"保存到历史</p>
+                <p><strong>4. 查看历史：</strong>在历史记录中查看过往记录</p>
+                <p><strong>5. 数据安全：</strong>所有数据保存在本地，不会上传到服务器</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🥗 沙拉热量记录器 - Telegram Web App版本</p>
+            <p>数据存储在本地 | 完全离线使用 | 支持暗色模式</p>
+            <p>© 2026 沙拉助手 | 版本 2.0</p>
+        </div>
+    </div>
+
+    <script>
+        // Telegram Web App初始化
+        let tg = window.Telegram.WebApp;
+        
+        // 初始化Telegram Web App
+        tg.expand();
+        tg.ready();
+        
+        // 显示用户信息
+        function initTelegramUser() {
+            const userInfo = document.getElementById('userInfo');
+            const user = tg.initDataUnsafe.user;
+            
+            if (user) {
+                userInfo.innerHTML = `
+                    <div class="user-avatar">${user.first_name ? user.first_name[0] : 'T'}</div>
+                    <div class="user-name">${user.first_name || 'Telegram用户'} ${user.last_name || ''}</div>
+                `;
+            } else {
+                userInfo.innerHTML = `
+                    <div class="user-avatar">🥗</div>
+                    <div class="user-name">沙拉热量记录器用户</div>
+                `;
+            }
+        }
+        
+        // 数据存储
+        const STORAGE_KEY = 'calorie_tracker_data';
+        const DAILY_GOAL = 2000; // 每日目标热量
+        
+        // 初始化数据
+        let data = {
+            today: {
+                date: new Date().toISOString().split('T')[0],
+                breakfast: [],
+                lunch: [],
+                dinner: [],
+                total: 0
+            },
+            history: [],
+            settings: {
+                dailyGoal: DAILY_GOAL,
+                theme: 'auto'
+            }
+        };
+        
+        // 加载数据
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    // 检查是否是今天的数据
+                    if (parsed.today.date === data.today.date) {
+                        data = parsed;
+                    } else {
+                        // 如果不是今天，保存到历史，开始新的一天
+                        if (parsed.today.total > 0) {
+                            data.history = parsed.history || [];
+                            data.history.push({
+                                date: parsed.today.date,
+                                total: parsed.today.total,
+                                meals: {
+                                    breakfast: parsed.today.breakfast,
+                                    lunch: parsed.today.lunch,
+                                    dinner: parsed.today.dinner
+                                }
+                            });
+                        }
+                        data.today = {
+                            date: new Date().toISOString().split('T')[0],
+                            breakfast: [],
+                            lunch: [],
+                            dinner: [],
+                            total: 0
+                        };
+                        saveData();
+                    }
+                } catch (e) {
+                    console.error('加载数据失败:', e);
+                }
+            }
+            updateUI();
+        }
+        
+        // 保存数据
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+        
+        // 更新UI
+        function updateUI() {
+            // 计算各餐总热量
+            const breakfastTotal = calculateMealTotal('breakfast');
+            const lunchTotal = calculateMealTotal('lunch');
+            const dinnerTotal = calculateMealTotal('dinner');
+            const totalCalories = breakfastTotal + lunchTotal + dinnerTotal;
+            
+            // 更新今日统计
+            document.getElementById('totalCalories').textContent = totalCalories;
+            document.getElementById('remainingCalories').textContent = Math.max(0, DAILY_GOAL - totalCalories);
+            document.getElementById('mealsCount').textContent = 
+                (data.today.breakfast.length > 0 ? 1 : 0) +
+                (data.today.lunch.length > 0 ? 1 : 0) +
+                (data.today.dinner.length > 0 ? 1 : 0);
+            
+            // 更新进度条
+            const progressPercent = Math.min(100, (totalCalories / DAILY_GOAL) * 100);
+            document.getElementById('progressFill').style.width = `${progressPercent}%`;
+            
+            // 更新各餐总热量显示
+            document.getElementById('breakfastTotal').textContent = `${breakfastTotal} 大卡`;
+            document.getElementById('lunchTotal').textContent = `${lunchTotal} 大卡`;
+            document.getElementById('dinnerTotal').textContent = `${dinnerTotal} 大卡`;
+            
+            // 更新食物列表
+            updateFoodList('breakfast', data.today.breakfast);
+            updateFoodList('lunch', data.today.lunch);
+            updateFoodList('dinner', data.today.dinner);
+            
+            // 更新历史记录
+            updateHistoryList();
+            
+            // 保存数据
+            data.today.total = totalCalories;
+            saveData();
+        }
+        
+        // 计算餐次总热量
+        function calculateMealTotal(mealType) {
+            return data.today[mealType].reduce((sum, food) => sum + food.calories, 0);
+        }
+        
+        // 更新食物列表
+        function updateFoodList(mealType, foods) {
+            const listElement = document.getElementById(`${mealType}List`);
+            if (!listElement) return;
+            
+            if (foods.length === 0) {
+                listElement.innerHTML = '<div class="food-item" style="text-align: center; color: #999;">暂无记录，添加食物开始记录吧！</div>';
+                return;
+            }
+            
+            listElement.innerHTML = foods.map((food, index) => `
+                <div class="food-item">
+                    <div class="food-name">${food.name}</div>
+                    <div class="food-calories">${food.calories} 大卡</div>
+                    <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" 
+                            onclick="removeFood('${mealType}', ${index})">删除</button>
+                </div>
+            `).join('');
+        }
+        
+        // 添加食物
+        function addFood(mealType) {
+            const foodInput = document.getElementById(`${mealType}Food`);
+            const caloriesInput = document.getElementById(`${mealType}Calories`);
+            
+            const foodName = foodInput.value.trim();
+            const calories = parseInt(caloriesInput.value);
+            
+            if (!foodName) {
+                showAlert('请输入食物名称');
+                return;
+            }
+            
+            if (isNaN(calories) || calories <= 0) {
+                showAlert('请输入有效的热量值');
+                return;
+            }
+            
+            data.today[mealType].push({
+                name: foodName,
+                calories: calories,
+                time: new Date().toLocaleTimeString()
+            });
+            
+            // 清空输入框
+            foodInput.value = '';
+            caloriesInput.value = '';
+            
+            updateUI();
+            showAlert(`已添加 ${foodName} (${calories}大卡) 到${getMealName(mealType)}`);
+        }
+        
+        // 快速添加食物
+        function quickAdd(mealType, foodName, calories) {
+            data.today[mealType].push({
+                name: foodName,
+                calories: calories,
+                time: new Date().toLocaleTimeString()
+            });
+            
+            updateUI();
+            showAlert(`已快速添加 ${foodName} (${calories}大卡) 到${getMealName(mealType)}`);
+        }
+        
+        // 删除食物
+        function removeFood(mealType, index) {
+            const food = data.today[mealType][index];
+            if (confirm(`确定要删除 ${food.name} (${food.calories}大卡) 吗？`)) {
+                data.today[mealType].splice(index, 1);
+                updateUI();
+                showAlert(`已删除 ${food.name}`);
+            }
+        }
+        
+        // 获取餐次名称
+        function getMealName(mealType) {
+            const names = {
+                breakfast: '早餐',
+                lunch: '午餐',
+                dinner: '晚餐'
+            };
+            return names[mealType] || mealType;
+        }
+        
+        // 保存今日记录到历史
+        function saveDay() {
+            if (data.today.total === 0) {
+                showAlert('今日还没有记录任何热量');
+                return;
+            }
+            
+            // 检查是否已经保存过今天的历史
+            const todayInHistory = data.history.find(item => item.date === data.today.date);
+            
+            if (todayInHistory) {
+                // 更新现有记录
+                todayInHistory.total = data.today.total;
+                todayInHistory.meals = {
+                    breakfast: [...data.today.breakfast],
+                    lunch: [...data.today.lunch],
+                    dinner: [...data.today.dinner]
+                };
+                showAlert('已更新今日历史记录');
+            } else {
+                // 添加新记录
+                data.history.unshift({
+                    date: data.today.date,
+                    total: data.today.total,
+                    meals: {
+                        breakfast: [...data.today.breakfast],
+                        lunch: [...data.today.lunch],
+                        dinner: [...data.today.dinner]
+                    }
+                });
+                showAlert('已保存今日记录到历史');
+            }
+            
+            saveData();
+            updateHistoryList();
+        }
+        
+        // 重置今日数据
+        function resetDay() {
+            if (confirm('确定要重置今日的所有记录吗？此操作不可撤销。')) {
+                data.today = {
+                    date: new Date().toISOString().split('T')[0],
+                    breakfast: [],
+                    lunch: [],
+                    dinner: [],
+                    total: 0
+                };
+                updateUI();
+                showAlert('今日记录已重置');
+            }
+        }
+        
+        // 清空所有数据
+        function clearAllData() {
+            if (confirm('确定要清空所有历史记录吗？此操作不可撤销。')) {
+                data.history = [];
+                saveData();
+                updateHistoryList();
+                showAlert('所有历史记录已清空');
+            }
+        }
+        
+        // 更新历史记录列表
+        function updateHistoryList() {
+            const historyList = document.getElementById('historyList');
+            
+            if (data.history.length === 0) {
+                historyList.innerHTML = '<div class="history-item" style="text-align: center; color: #999;">暂无历史记录</div>';
+                return;
+            }
+            
+            historyList.innerHTML = data.history.map(item => `
+                <div class="history-item">
+                    <div>
+                        <div style="font-weight: 500;">${formatDate(item.date)}</div>
+                        <div class="history-date">${item.meals.breakfast.length + item.meals.lunch.length + item.meals.dinner.length} 种食物</div>
+                    </div>
+                    <div class="history-total">${item.total} 大卡</div>
+                </div>
+            `).join('');
+        }
+        
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const today = new Date().toISOString().split('T')[0];
+            
+            if (dateString === today) {
+                return '今天';
+            }
+            
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (dateString === yesterday.toISOString().split('T')[0]) {
+                return '昨天';
+            }
+            
+            return `${date.getMonth() + 1}月${date.getDate()}日`;
+        }
+        
+        // 导出数据
+        function exportData() {
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                today: data.today,
+                history: data.history,
+                settings: data.settings
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `热量记录_${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showAlert('数据已导出为JSON文件');
+        }
+        
+        // Telegram相关功能
+        function shareToTelegram() {
+            const shareText = `🥗 今日热量记录：${data.today.total}大卡\n` +
+                             `早餐：${calculateMealTotal('breakfast')}大卡\n` +
+                             `午餐：${calculateMealTotal('lunch')}大卡\n` +
+                             `晚餐：${calculateMealTotal('dinner')}大卡\n` +
+                             `剩余：${Math.max(0, DAILY_GOAL - data.today.total)}大卡`;
+            
+            if (tg && tg.sendData) {
+                tg.sendData(shareText);
+                showAlert('已分享到Telegram');
+            } else {
+                // 备用方案：复制到剪贴板
+                navigator.clipboard.writeText(shareText).then(() => {
+                    showAlert('已复制到剪贴板，可以在Telegram中粘贴分享');
+                });
+            }
+        }
+        
+        function requestContact() {
+            if (tg && tg.requestContact) {
+                tg.requestContact();
+                showAlert('已请求联系人信息');
+            } else {
+                showAlert('此功能在当前环境中不可用');
+            }
+        }
+        
+        function showMainButton() {
+            if (tg && tg.MainButton) {
+                tg.MainButton.setText("保存并分享");
+                tg.MainButton.onClick(() => {
+                    saveDay();
+                    shareToTelegram();
+                });
+                tg.MainButton.show();
+                showAlert('主按钮已显示');
+            }
+        }
+        
+        // 显示提示
+        function showAlert(message) {
+            // 使用Telegram的提示功能
+            if (tg && tg.showAlert) {
+                tg.showAlert(message);
+            } else {
+                // 备用方案：浏览器提示
+                alert(message);
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initTelegramUser();
+            loadData();
+            
+            // 为输入框添加回车键支持
+            const inputs = document.querySelectorAll('.food-input, .calories-input');
+            inputs.forEach(input => {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const mealType = this.id.replace('Food', '').replace('Calories', '');
+                        addFood(mealType);
+                    }
+                });
+            });
+            
+            // 初始化Telegram主题
+            if (tg && tg.colorScheme) {
+                document.body.setAttribute('data-theme', tg.colorScheme);
+            }
+            
+            // 监听Telegram主题变化
+            if (tg && tg.onEvent) {
+                tg.onEvent('themeChanged', () => {
+                    document.body.setAttribute('data-theme', tg.colorScheme);
+                });
+            }
+            
+            // 显示欢迎消息
+            setTimeout(() => {
+                showAlert('🥗 欢迎使用沙拉热量记录器！开始记录你的健康饮食吧！');
+            }, 1000);
+        });
+        
+        // 添加键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+S 保存
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveDay();
+            }
+            // Ctrl+E 导出
+            if (e.ctrlKey && e.key === 'e') {
+                e.preventDefault();
+                exportData();
+            }
+            // Ctrl+R 重置
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                resetDay();
+            }
+        });
+        
+        // 添加服务工作者（PWA支持）
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(error => {
+                    console.log('Service Worker 注册失败:', error);
+                });
+            });
+        }
+        
+        // 添加到主屏幕提示
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // 可以在这里显示"添加到主屏幕"按钮
+            setTimeout(() => {
+                if (deferredPrompt && confirm('是否要将此应用添加到主屏幕？')) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('用户接受了添加到主屏幕');
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
