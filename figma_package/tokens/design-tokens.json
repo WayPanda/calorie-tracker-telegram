@@ -1,0 +1,27 @@
+{
+  "color": {
+    "primary": "#2F6BFF",
+    "success": "#16A34A",
+    "warning": "#F59E0B",
+    "danger": "#EF4444",
+    "textPrimary": "#111827",
+    "textSecondary": "#4B5563",
+    "border": "#E5E7EB",
+    "bg": "#F9FAFB",
+    "card": "#FFFFFF"
+  },
+  "radius": {
+    "input": 8,
+    "card": 12,
+    "sheet": 16
+  },
+  "spacing": [4, 8, 12, 16, 20, 24, 32],
+  "typography": {
+    "h1": {"size": 24, "lineHeight": 32, "weight": 600},
+    "h2": {"size": 20, "lineHeight": 28, "weight": 600},
+    "subtitle": {"size": 16, "lineHeight": 24, "weight": 500},
+    "body": {"size": 14, "lineHeight": 22, "weight": 400},
+    "caption": {"size": 12, "lineHeight": 18, "weight": 400},
+    "metric": {"size": 28, "lineHeight": 32, "weight": 700}
+  }
+}

@@ -1,0 +1,21 @@
+<svg width="390" height="844" viewBox="0 0 390 844" xmlns="http://www.w3.org/2000/svg">
+  <rect width="390" height="844" fill="#F9FAFB"/>
+  <text x="24" y="52" font-size="20" font-family="Inter" fill="#111827">识别结果</text>
+  <rect x="24" y="88" width="342" height="150" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <text x="40" y="122" font-size="14" font-family="Inter" fill="#4B5563">热量区间</text>
+  <text x="40" y="166" font-size="32" font-family="Inter" font-weight="700" fill="#111827">650 - 820 kcal</text>
+  <rect x="40" y="184" width="52" height="24" rx="12" fill="#FEF3C7"/>
+  <text x="52" y="200" font-size="12" font-family="Inter" fill="#92400E">高油</text>
+  <rect x="100" y="184" width="52" height="24" rx="12" fill="#FEE2E2"/>
+  <text x="112" y="200" font-size="12" font-family="Inter" fill="#991B1B">高糖</text>
+  <rect x="24" y="258" width="342" height="96" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <text x="40" y="288" font-size="14" font-family="Inter" fill="#111827">下一餐建议</text>
+  <text x="40" y="312" font-size="12" font-family="Inter" fill="#4B5563">主食减半 + 增加 1 份绿叶菜 + 无糖饮品替代</text>
+  <rect x="24" y="370" width="342" height="96" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <text x="40" y="400" font-size="14" font-family="Inter" fill="#111827">当日补救建议</text>
+  <text x="40" y="424" font-size="12" font-family="Inter" fill="#4B5563">晚间避免甜饮，补充 20 分钟快走</text>
+  <rect x="24" y="494" width="342" height="52" rx="12" fill="#2F6BFF"/>
+  <text x="161" y="526" font-size="16" font-family="Inter" fill="#FFFFFF">保存记录</text>
+  <rect x="24" y="558" width="342" height="52" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <text x="151" y="590" font-size="16" font-family="Inter" fill="#111827">换一组建议</text>
+</svg>
