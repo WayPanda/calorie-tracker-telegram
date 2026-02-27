@@ -1,0 +1,14 @@
+<svg width="390" height="844" viewBox="0 0 390 844" xmlns="http://www.w3.org/2000/svg">
+  <rect width="390" height="844" fill="#F9FAFB"/>
+  <text x="24" y="52" font-size="20" font-family="Inter" fill="#111827">我的</text>
+  <rect x="24" y="88" width="342" height="120" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <text x="40" y="120" font-size="16" font-family="Inter" fill="#111827">Alex</text>
+  <text x="40" y="146" font-size="12" font-family="Inter" fill="#4B5563">目标：减脂 · 活动水平：中等</text>
+  <text x="40" y="168" font-size="12" font-family="Inter" fill="#4B5563">身高 172cm · 体重 68kg</text>
+  <rect x="24" y="224" width="342" height="56" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <text x="40" y="258" font-size="14" font-family="Inter" fill="#111827">目标设置</text>
+  <rect x="24" y="292" width="342" height="56" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <text x="40" y="326" font-size="14" font-family="Inter" fill="#111827">订阅权益</text>
+  <rect x="24" y="360" width="342" height="56" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <text x="40" y="394" font-size="14" font-family="Inter" fill="#111827">隐私与数据删除</text>
+</svg>

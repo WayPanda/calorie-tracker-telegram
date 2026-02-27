@@ -1,0 +1,16 @@
+<svg width="390" height="844" viewBox="0 0 390 844" xmlns="http://www.w3.org/2000/svg">
+  <rect width="390" height="844" fill="#F9FAFB"/>
+  <text x="24" y="52" font-size="20" font-family="Inter" fill="#111827">上传餐食照片</text>
+  <rect x="24" y="88" width="342" height="320" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <text x="136" y="248" font-size="14" font-family="Inter" fill="#4B5563">点击拍照或上传</text>
+  <rect x="24" y="428" width="166" height="52" rx="12" fill="#2F6BFF"/>
+  <text x="83" y="460" font-size="16" font-family="Inter" fill="#FFFFFF">拍照</text>
+  <rect x="200" y="428" width="166" height="52" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <text x="251" y="460" font-size="16" font-family="Inter" fill="#111827">相册</text>
+  <text x="24" y="524" font-size="14" font-family="Inter" fill="#111827">餐次选择</text>
+  <rect x="24" y="540" width="76" height="36" rx="18" fill="#2F6BFF"/>
+  <text x="46" y="563" font-size="14" font-family="Inter" fill="#FFFFFF">午餐</text>
+  <rect x="108" y="540" width="76" height="36" rx="18" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <text x="130" y="563" font-size="14" font-family="Inter" fill="#111827">晚餐</text>
+  <text x="24" y="620" font-size="12" font-family="Inter" fill="#4B5563">仅支持 JPG / PNG，且小于 10MB</text>
+</svg>
