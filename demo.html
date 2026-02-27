@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CaloriePilot Pro - 外卖热量追踪 MVP</title>
+  <style>
+    :root {
+      --bg: #f3f6ff; --surface: #fff; --surface-soft: #f8faff; --text: #111827; --muted: #6b7280;
+      --line: #e6eaf2; --primary: #335dff; --primary-2: #6b87ff; --success: #16a34a; --warning: #f59e0b;
+      --danger: #ef4444; --shadow: 0 12px 30px rgba(22,35,90,.08);
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif; color:var(--text);
+      background: radial-gradient(1200px 600px at 20% -10%, #dee8ff 0%, var(--bg) 45%, #eef2ff 100%); }
+    .layout { max-width:1180px; margin:0 auto; padding:28px 20px 120px; display:grid; grid-template-columns:1.1fr .9fr; gap:20px; }
+    .panel { background:var(--surface); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow); overflow:hidden; }
+    .hero { padding:28px; background:linear-gradient(135deg,#2138a6,#335dff 35%,#6b87ff); color:#fff; }
+    .hero h1 { margin:0; font-size:30px; } .hero p { margin:10px 0 0; opacity:.95; line-height:1.6; }
+    .tag { display:inline-flex; gap:6px; font-size:12px; border-radius:999px; background:rgba(255,255,255,.16); padding:6px 12px; margin-bottom:12px; }
+    .content { padding:20px; }
+    .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:14px; }
+    .kpi { border:1px solid var(--line); background:var(--surface-soft); border-radius:14px; padding:12px; }
+    .kpi .label { font-size:12px; color:var(--muted); } .kpi .value { margin-top:6px; font-weight:700; font-size:20px; }
+
+    .phone { width:100%; max-width:390px; margin:0 auto; border-radius:28px; background:#fff; border:1px solid #dce3f3;
+      box-shadow:0 18px 40px rgba(40,54,119,.18); overflow:hidden; position:relative; }
+    .statusbar { height:26px; background:#f8fbff; border-bottom:1px solid var(--line); }
+    .screen { height:760px; overflow:auto; padding:16px 14px 86px; background:#f6f9ff; display:none; }
+    .screen.active { display:block; }
+    .h-title { font-size:22px; font-weight:800; margin:0 0 2px; } .h-sub { color:var(--muted); font-size:12px; margin-bottom:14px; }
+    .card { border:1px solid var(--line); background:#fff; border-radius:16px; padding:14px; margin-bottom:10px; }
+    .split { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .ring { width:94px; height:94px; border-radius:50%; background:conic-gradient(var(--primary) 0 72%, #e9edff 72% 100%); position:relative; }
+    .ring::after { content:attr(data-progress); position:absolute; inset:11px; border-radius:50%; background:#fff; display:grid; place-items:center; font-size:14px; font-weight:700; color:var(--primary); }
+    .btn { width:100%; border:0; border-radius:12px; padding:12px 14px; font-weight:700; cursor:pointer; }
+    .btn.primary { background:linear-gradient(135deg,var(--primary),var(--primary-2)); color:#fff; }
+    .btn.secondary { background:#fff; border:1px solid var(--line); color:var(--text); }
+    .btn.ghost { background:#eef2ff; color:#2a4fff; }
+    .row { display:flex; gap:8px; }
+    .pill { font-size:11px; border-radius:999px; padding:4px 10px; display:inline-block; }
+    .pill.warn { background:#fff7ed; color:#9a3412; } .pill.danger { background:#fef2f2; color:#991b1b; } .pill.ok { background:#ecfdf3; color:#166534; }
+    .meal { border:1px solid var(--line); border-radius:12px; padding:10px; margin-top:8px; background:linear-gradient(180deg,#fff,#fbfcff); }
+    .tiny { font-size:12px; color:var(--muted); }
+
+    .seg { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+    .seg button { flex:1; min-width:68px; border:1px solid var(--line); background:#fff; border-radius:10px; padding:8px 0; cursor:pointer; }
+    .seg button.active { border-color:#b8c7ff; background:#edf2ff; color:#2a4fff; font-weight:700; }
+    .input, .select, textarea { width:100%; padding:10px; border:1px solid var(--line); border-radius:10px; background:#fff; font-size:14px; }
+
+    .timeline { display:flex; align-items:end; gap:6px; height:94px; margin-top:8px; }
+    .bar { width:18px; border-radius:6px 6px 0 0; background:#c7d2fe; position:relative; }
+    .bar span { position:absolute; bottom:-18px; width:18px; left:0; font-size:10px; color:var(--muted); text-align:center; }
+    .bar.ok { background:#86efac; } .bar.warn { background:#fcd34d; } .bar.danger { background:#fca5a5; }
+
+    .tabbar { position:absolute; left:0; right:0; bottom:0; border-top:1px solid var(--line); background:rgba(255,255,255,.96); display:flex; }
+    .tab { flex:1; text-align:center; padding:10px 0; color:var(--muted); font-size:12px; cursor:pointer; }
+    .tab.active { color:var(--primary); font-weight:700; }
+
+    .modal { position:fixed; inset:0; background:rgba(15,23,42,.45); display:none; align-items:center; justify-content:center; z-index:30; padding:20px; }
+    .modal.show { display:flex; }
+    .modal-card { width:min(420px,100%); background:#fff; border-radius:18px; padding:18px; box-shadow:0 20px 40px rgba(0,0,0,.24); }
+    .loader { margin:12px auto; width:44px; height:44px; border-radius:50%; border:4px solid #e5e7eb; border-top-color:var(--primary); animation:spin .9s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .meta { font-size:12px; color:var(--muted); margin-top:6px; }
+    .hidden { display:none; }
+
+    @media (max-width:980px) { .layout { grid-template-columns:1fr; } .kpis { grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="layout">
+    <section class="panel">
+      <div class="hero">
+        <span class="tag">🚀 商业级产品 Demo / 前端独立演示</span>
+        <h1>CaloriePilot Pro</h1>
+        <p>为都市白领打造的外卖热量追踪助手：拍照识别、热量评估、风险提示、下一餐策略与周趋势复盘。</p>
+      </div>
+      <div class="content">
+        <div class="kpis">
+          <div class="kpi"><div class="label">周记录用户</div><div class="value" id="kpiUsers">1,284</div></div>
+          <div class="kpi"><div class="label">识别耗时 P95</div><div class="value">8.3s</div></div>
+          <div class="kpi"><div class="label">建议采纳率</div><div class="value" id="kpiAdvice">47%</div></div>
+        </div>
+        <div class="card">
+          <div class="split"><b>演示说明</b><span class="tiny">无后端 · 本地持久化</span></div>
+          <p class="tiny" style="margin:8px 0 0;line-height:1.6">现在可以持续记录：保存后将写入本地存储，首页“最近记录”和分析页“7日趋势”会实时更新。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="phone" aria-label="mobile-demo">
+      <div class="statusbar"></div>
+
+      <section id="home" class="screen active">
+        <h2 class="h-title">记录</h2>
+        <div class="h-sub" id="homeGreeting">今天先从午餐开始，控热量不挨饿</div>
+        <div class="card split">
+          <div>
+            <div class="tiny">今日摄入</div>
+            <div style="font-size:26px;font-weight:800" id="calorieTotal">0 / 1800 kcal</div>
+            <div class="tiny" id="calorieState">今天还没有记录，先拍第一餐吧</div>
+          </div>
+          <div class="ring" id="ring" data-progress="0%"></div>
+        </div>
+        <button class="btn primary" onclick="showScreen('upload')">📷 拍照记录一餐</button>
+
+        <div class="card" style="margin-top:10px">
+          <div class="split"><b>最近记录</b><span class="tiny" id="recentCount">0 条</span></div>
+          <div id="recentList" class="tiny">暂无记录</div>
+        </div>
+      </section>
+
+      <section id="upload" class="screen">
+        <h2 class="h-title">上传餐食</h2>
+        <div class="h-sub">支持单张图片识别（Demo 不上传云端）</div>
+        <div class="card">
+          <label class="tiny">餐食照片</label>
+          <input id="photo" class="input" type="file" accept="image/*" />
+          <label class="tiny" style="display:block;margin-top:8px">餐次</label>
+          <div class="seg" id="mealSeg">
+            <button data-meal="早餐">早餐</button>
+            <button class="active" data-meal="午餐">午餐</button>
+            <button data-meal="晚餐">晚餐</button>
+            <button data-meal="加餐">加餐</button>
+          </div>
+          <label class="tiny" style="display:block;margin-top:8px">餐食描述（可选）</label>
+          <textarea id="mealDesc" rows="2" placeholder="例如：黄焖鸡米饭 + 半糖奶茶"></textarea>
+          <div class="meta" id="uploadMeta">当前以「午餐」策略生成建议。</div>
+        </div>
+        <div class="row">
+          <button class="btn secondary" onclick="showScreen('home')">返回</button>
+          <button class="btn primary" onclick="startRecognition()">开始识别</button>
+        </div>
+      </section>
+
+      <section id="result" class="screen">
+        <h2 class="h-title">识别结果</h2>
+        <div class="h-sub">AI 评估（模拟）</div>
+        <div class="card">
+          <div class="tiny">热量区间</div>
+          <div style="font-size:30px;font-weight:800" id="resultCalorie">650 - 820 kcal</div>
+          <div style="margin-top:4px" id="riskTags"></div>
+          <div class="meta" style="margin-top:8px" id="resultBreakdown">主要来源：主食 35% / 油脂 30% / 蛋白 25% / 饮料 10%</div>
+        </div>
+        <div class="card"><b>下一餐建议</b><div class="tiny" id="advice1" style="margin-top:6px"></div></div>
+        <div class="card"><b>今日补救建议</b><div class="tiny" id="advice2" style="margin-top:6px"></div></div>
+        <div class="row">
+          <button class="btn ghost" onclick="shuffleAdvice()">换一组建议</button>
+          <button class="btn primary" onclick="saveLog()">保存记录</button>
+        </div>
+      </section>
+
+      <section id="analysis" class="screen">
+        <h2 class="h-title">分析</h2>
+        <div class="h-sub">近 7 日摄入趋势与风险分布</div>
+        <div class="card">
+          <div class="split"><b>趋势图</b><span class="tiny">kcal</span></div>
+          <div class="timeline" id="weekChart"></div>
+          <div class="meta" id="weekSummary">最近 7 天暂无记录。</div>
+        </div>
+        <div class="card"><b>高风险餐次提醒</b><div class="tiny" style="margin-top:6px" id="riskSummary">暂无高风险餐次。</div></div>
+      </section>
+
+      <section id="profile" class="screen">
+        <h2 class="h-title">我的</h2>
+        <div class="h-sub">个性化目标与订阅权益</div>
+        <div class="card">
+          <b>基础档案</b>
+          <div class="tiny" style="margin-top:8px" id="profileText">目标：减脂 | 身高：172cm | 体重：68kg | 活动：中等</div>
+          <button class="btn secondary" style="margin-top:10px" onclick="toggleProfileForm()">编辑档案</button>
+          <div id="profileForm" class="hidden" style="margin-top:10px">
+            <div class="row"><input id="pHeight" class="input" type="number" placeholder="身高 cm" /><input id="pWeight" class="input" type="number" placeholder="体重 kg" /></div>
+            <div class="row" style="margin-top:8px"><select id="pGoal" class="select"><option>减脂</option><option>维持</option><option>增肌</option></select><select id="pActive" class="select"><option>低</option><option selected>中等</option><option>高</option></select></div>
+            <button class="btn primary" style="margin-top:8px" onclick="saveProfile()">保存档案</button>
+          </div>
+        </div>
+        <div class="card"><b>会员权益（Demo）</b><div class="tiny" style="margin-top:8px;line-height:1.7">不限次识别 · 每周复盘报告 · 饮食策略包 · AI 营养问答</div></div>
+      </section>
+
+      <nav class="tabbar">
+        <div class="tab active" data-target="home">记录</div>
+        <div class="tab" data-target="analysis">分析</div>
+        <div class="tab" data-target="profile">我的</div>
+      </nav>
+    </section>
+  </main>
+
+  <div class="modal" id="modal"><div class="modal-card"><h3 style="margin:0">正在识别餐食...</h3><div class="loader"></div><div class="tiny" id="loadingText">正在分析主食、蛋白、油脂占比</div></div></div>
+
+  <script>
+    const storageKey = 'caloriepilot-pro-v1';
+    const adviceSet = [
+      ['下一餐：主食控制在 1/2 份，优先选择清蒸蛋白。', '今日补救：增加 2500 步，晚餐避免高糖饮品。'],
+      ['下一餐：加 1 份蔬菜和 1 份优质蛋白，减少重油酱汁。', '今日补救：夜间不加餐，补充无糖酸奶或黄瓜。'],
+      ['下一餐：将精制主食替换为玉米/红薯，减少钠摄入。', '今日补救：晚饭后 20 分钟轻运动，早睡减少代谢压力。']
+    ];
+    const mealBase = { 早餐: [350, 520], 午餐: [620, 850], 晚餐: [520, 760], 加餐: [180, 360] };
+
+    const state = {
+      selectedMeal: '午餐',
+      currentResult: null,
+      profile: { goal: '减脂', height: 172, weight: 68, activity: '中等', dailyGoal: 1800 },
+      logs: []
+    };
+
+    function todayStr() { return new Date().toISOString().slice(0, 10); }
+    function weekDays() {
+      return [...Array(7)].map((_, i) => {
+        const d = new Date(); d.setDate(d.getDate() - (6 - i));
+        return d.toISOString().slice(5, 10);
+      });
+    }
+
+    function saveState() { localStorage.setItem(storageKey, JSON.stringify({ profile: state.profile, logs: state.logs })); }
+    function loadState() {
+      const raw = localStorage.getItem(storageKey); if (!raw) return;
+      try {
+        const data = JSON.parse(raw);
+        if (data.profile) state.profile = { ...state.profile, ...data.profile };
+        if (Array.isArray(data.logs)) state.logs = data.logs;
+      } catch (_) {}
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.target === id));
+      if (id === 'analysis') renderAnalysis();
+      if (id === 'home') renderHome();
+      if (id === 'profile') renderProfile();
+    }
+
+    function mealColor(risk) {
+      if (risk.includes('高糖') || risk.includes('高油')) return 'danger';
+      if (risk.includes('高钠')) return 'warn';
+      return 'ok';
+    }
+
+    function renderHome() {
+      const today = todayStr();
+      const todayLogs = state.logs.filter(x => x.date === today);
+      const total = todayLogs.reduce((s, x) => s + x.calorieMid, 0);
+      const goal = state.profile.dailyGoal;
+      const pct = Math.min(100, Math.round((total / goal) * 100));
+      const ring = document.getElementById('ring');
+      ring.style.background = `conic-gradient(#335dff 0 ${pct}%, #e9edff ${pct}% 100%)`;
+      ring.setAttribute('data-progress', `${pct}%`);
+      document.getElementById('calorieTotal').textContent = `${total} / ${goal} kcal`;
+      document.getElementById('calorieState').textContent = total === 0 ? '今天还没有记录，先拍第一餐吧' : (total > goal ? '已超标，建议晚餐低脂低糖' : total > goal * 0.85 ? '接近上限，注意晚餐控制' : '状态良好，继续保持');
+      const recent = [...state.logs].sort((a,b)=>b.ts-a.ts).slice(0,3);
+      document.getElementById('recentCount').textContent = `${recent.length} 条`;
+      document.getElementById('recentList').innerHTML = recent.length ? recent.map(x => `<div class="meal"><b>${x.meal} · ${x.name}</b><div class="tiny">${x.calorieMin}-${x.calorieMax} kcal · <span class="pill ${mealColor(x.risks)}">${x.risks.join(' / ')}</span></div></div>`).join('') : '暂无记录';
+      document.getElementById('kpiAdvice').textContent = `${Math.min(88, 35 + state.logs.length * 2)}%`;
+    }
+
+    function renderAnalysis() {
+      const labels = weekDays();
+      const byDay = Object.fromEntries(labels.map(d => [d, 0]));
+      state.logs.forEach(x => {
+        const k = x.date.slice(5, 10);
+        if (k in byDay) byDay[k] += x.calorieMid;
+      });
+      const max = Math.max(1, ...Object.values(byDay));
+      const chart = document.getElementById('weekChart');
+      chart.innerHTML = labels.map(d => {
+        const v = byDay[d];
+        const h = Math.max(10, Math.round((v / max) * 84));
+        const cls = v > state.profile.dailyGoal ? 'danger' : v > state.profile.dailyGoal * 0.85 ? 'warn' : 'ok';
+        return `<div class="bar ${cls}" style="height:${h}px"><span>${d.split('-')[1]}</span></div>`;
+      }).join('');
+      const weekTotal = Object.values(byDay).reduce((a,b)=>a+b,0);
+      document.getElementById('weekSummary').textContent = weekTotal === 0 ? '最近 7 天暂无记录。' : `近 7 天总摄入 ${weekTotal} kcal，日均 ${Math.round(weekTotal/7)} kcal。`;
+      const risky = state.logs.filter(x => x.risks.includes('高糖') || x.risks.includes('高油')).slice(-1)[0];
+      document.getElementById('riskSummary').textContent = risky ? `${risky.date} ${risky.meal}：${risky.name}（${risky.risks.join('/')}）` : '暂无高风险餐次。';
+    }
+
+    function renderProfile() {
+      document.getElementById('profileText').textContent = `目标：${state.profile.goal} | 身高：${state.profile.height}cm | 体重：${state.profile.weight}kg | 活动：${state.profile.activity}`;
+      document.getElementById('pHeight').value = state.profile.height;
+      document.getElementById('pWeight').value = state.profile.weight;
+      document.getElementById('pGoal').value = state.profile.goal;
+      document.getElementById('pActive').value = state.profile.activity;
+    }
+
+    function toggleProfileForm() { document.getElementById('profileForm').classList.toggle('hidden'); }
+    function saveProfile() {
+      state.profile.height = Number(document.getElementById('pHeight').value || state.profile.height);
+      state.profile.weight = Number(document.getElementById('pWeight').value || state.profile.weight);
+      state.profile.goal = document.getElementById('pGoal').value;
+      state.profile.activity = document.getElementById('pActive').value;
+      state.profile.dailyGoal = state.profile.goal === '减脂' ? 1800 : state.profile.goal === '维持' ? 2200 : 2600;
+      saveState(); renderProfile(); renderHome();
+      document.getElementById('profileForm').classList.add('hidden');
+    }
+
+    function riskTagsFor(rangeMax, desc='') {
+      const tags = [];
+      if (rangeMax > 780 || /炸|奶茶|甜|酱/.test(desc)) tags.push('高油');
+      if (/奶茶|甜|可乐|蛋糕/.test(desc) || rangeMax > 760) tags.push('高糖');
+      if (/卤|泡面|腌/.test(desc)) tags.push('高钠');
+      if (!tags.length) tags.push('均衡');
+      return tags.slice(0, 2);
+    }
+
+    function startRecognition() {
+      const file = document.getElementById('photo').files[0];
+      const desc = document.getElementById('mealDesc').value.trim();
+      const [baseMin, baseMax] = mealBase[state.selectedMeal];
+      const adjust = Math.max(-80, Math.min(120, desc.length * 4));
+      const min = baseMin + adjust;
+      const max = baseMax + adjust;
+      const risks = riskTagsFor(max, desc);
+      state.currentResult = {
+        meal: state.selectedMeal,
+        name: desc || `${state.selectedMeal}外卖餐`,
+        calorieMin: min,
+        calorieMax: max,
+        calorieMid: Math.round((min + max) / 2),
+        risks
+      };
+      document.getElementById('resultCalorie').textContent = `${min} - ${max} kcal`;
+      document.getElementById('riskTags').innerHTML = risks.map(r => `<span class="pill ${r==='均衡'?'ok':r==='高钠'?'warn':'danger'}">${r}</span>`).join('');
+      document.getElementById('resultBreakdown').textContent = `主要来源：主食 ${32 + Math.floor(Math.random()*10)}% / 油脂 ${20 + Math.floor(Math.random()*15)}% / 蛋白 ${20 + Math.floor(Math.random()*15)}% / 饮料 ${5 + Math.floor(Math.random()*10)}%`;
+      shuffleAdvice();
+
+      const modal = document.getElementById('modal');
+      modal.classList.add('show');
+      document.getElementById('loadingText').textContent = file ? `已读取 ${file.name}，正在评估热量和风险...` : `使用「${state.selectedMeal}」示例餐进行演示识别...`;
+      setTimeout(() => { modal.classList.remove('show'); showScreen('result'); }, 1200);
+    }
+
+    function shuffleAdvice() {
+      const [a1, a2] = adviceSet[Math.floor(Math.random() * adviceSet.length)];
+      document.getElementById('advice1').textContent = a1;
+      document.getElementById('advice2').textContent = a2;
+    }
+
+    function saveLog() {
+      if (!state.currentResult) return;
+      state.logs.push({ ...state.currentResult, date: todayStr(), ts: Date.now() });
+      saveState();
+      document.getElementById('mealDesc').value = '';
+      document.getElementById('photo').value = '';
+      renderHome();
+      showScreen('home');
+    }
+
+    document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => showScreen(tab.dataset.target)));
+    document.querySelectorAll('#mealSeg button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#mealSeg button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.selectedMeal = btn.dataset.meal;
+        document.getElementById('uploadMeta').textContent = `当前以「${state.selectedMeal}」策略生成建议。`;
+      });
+    });
+
+    loadState();
+    renderHome();
+    renderAnalysis();
+    renderProfile();
+    shuffleAdvice();
+  </script>
+</body>
+</html>
